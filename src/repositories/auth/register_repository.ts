@@ -58,6 +58,9 @@ export async function createUser(params: CreateUserParams): Promise<UserRecord> 
     if (typeof params.created_by_id === 'number' && Number.isFinite(params.created_by_id)) {
        userData.created_by_id = params.created_by_id;
     }
+    if (typeof params.seats_quota === 'number' && Number.isFinite(params.seats_quota)) {
+       userData.seats_quota = params.seats_quota;
+    }
 
     const user = await tx.users.create({
       data: userData,

@@ -10,4 +10,5 @@ export interface RegisterCreateDTO {
   role_id?: number | null;
   change_password?: boolean;
   created_by_id?: number;
+  seats_quota?: number;
 }

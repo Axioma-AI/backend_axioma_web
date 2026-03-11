@@ -36,7 +36,7 @@ function toPublicUser(u: UserRecord): PublicUser {
   };
 }
 
-async function baseRegisterService(input: any, defaultRoleName: RoleName, creatorId?: number): Promise<RegisterResponse> {
+async function baseRegisterService(input: any, defaultRoleName: RoleName, creatorId?: number, opts?: { seats_quota?: number }): Promise<RegisterResponse> {
 
   if (await emailExists(input.email)) {
     throw new ValidationError('El email ya está registrado.');
@@ -79,6 +79,7 @@ async function baseRegisterService(input: any, defaultRoleName: RoleName, creato
     role_id: roleId ?? null,
     change_password: typeof input.force_change_password === 'boolean' ? input.force_change_password : undefined,
     created_by_id: typeof creatorId === 'number' && Number.isFinite(creatorId) ? creatorId : undefined,
+    seats_quota: typeof opts?.seats_quota === 'number' ? opts?.seats_quota : undefined,
   });
 
   logger.info(`User registered: ${user.email} (id=${user.id})`);
@@ -92,5 +93,5 @@ export async function registerService(rawBody: any, creatorId: number): Promise<
 
 export async function registerRootService(rawBody: any): Promise<RegisterResponse> {
   const input: RegisterRootRequestInput = zodValidation(RegisterRootRequestSchema, rawBody);
-  return baseRegisterService(input, RoleName.ADMIN, undefined);
+  return baseRegisterService(input, RoleName.ADMIN, undefined, { seats_quota: 20 });
 }
