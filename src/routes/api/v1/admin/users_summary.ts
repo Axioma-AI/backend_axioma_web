@@ -6,6 +6,8 @@ import { ValidationError } from '../../../../utils/errors';
 import { prisma } from '../../../../config/db_config';
 import { HTTP } from '../../../../schemas/common/baseResponse';
 import { buildResponse } from '../../../../utils/response_builder';
+import { AdminUserIdentifierQuerySchema } from '../../../../schemas/admin/interests/zod/user_identifier_query_schema';
+import type { AdminUserIdentifierQueryDTO } from '../../../../schemas/admin/interests/dto/user_identifier_query_dto';
 
 const _APP_SETTINGS: AppSettings = getAppSettings();
 const logger = setupLogger(_APP_SETTINGS.log_level);
@@ -15,29 +17,19 @@ export const adminUsersSummaryRouter = Router();
 adminUsersSummaryRouter.get('/users/summary', requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const adminId = Number((req as any).userId);
-    const idParam = req.query.id;
-    const emailParam = req.query.email;
-    const usernameParam = req.query.username;
-    const provided = [
-      typeof idParam === 'string' && idParam.trim().length > 0,
-      typeof emailParam === 'string' && emailParam.trim().length > 0,
-      typeof usernameParam === 'string' && usernameParam.trim().length > 0,
-    ].filter(Boolean).length;
-    if (provided !== 1) {
-      throw new ValidationError('Provide exactly one identifier: id OR email OR username.', HTTP.BAD_REQUEST);
+    const parsed = AdminUserIdentifierQuerySchema.safeParse(req.query);
+    if (!parsed.success) {
+      throw new ValidationError(parsed.error.issues?.[0]?.message ?? 'Invalid query', HTTP.BAD_REQUEST);
     }
+    const query = parsed.data as AdminUserIdentifierQueryDTO;
 
     let user: any = null;
-    if (typeof idParam === 'string' && idParam.trim().length > 0) {
-      const id = Number(idParam);
-      if (!Number.isFinite(id) || id <= 0) throw new ValidationError('Invalid user id.', HTTP.BAD_REQUEST);
-      user = await prisma.users.findUnique({ where: { id } });
-    } else if (typeof emailParam === 'string' && emailParam.trim().length > 0) {
-      const email = emailParam.trim().toLowerCase();
-      user = await prisma.users.findUnique({ where: { email } });
-    } else if (typeof usernameParam === 'string' && usernameParam.trim().length > 0) {
-      const username = usernameParam.trim();
-      user = await prisma.users.findUnique({ where: { username } });
+    if (typeof query.id === 'number') {
+      user = await prisma.users.findUnique({ where: { id: query.id } });
+    } else if (typeof query.email === 'string') {
+      user = await prisma.users.findUnique({ where: { email: query.email } });
+    } else if (typeof query.username === 'string') {
+      user = await prisma.users.findUnique({ where: { username: query.username } });
     }
     if (!user) throw new ValidationError('User not found.', HTTP.NOT_FOUND);
     if (!user.created_by_id || Number(user.created_by_id) !== adminId) {
@@ -55,11 +47,24 @@ adminUsersSummaryRouter.get('/users/summary', requireAdmin, async (req: Request,
     for (const g of mappedGroups) for (const it of g.interests) assignedIds.add(it.id);
     const unassignedInterests = allInterests.filter(i => !assignedIds.has(i.id));
 
+    const firstName = user.first_name ?? '';
+    const lastName = user.last_name_paternal
+      ? user.last_name_paternal + (user.last_name_maternal ? ' ' + user.last_name_maternal : '')
+      : '';
+
     buildResponse(
       res,
       HTTP.OK,
       {
-        user: { id: user.id, email: user.email, username: user.username },
+        user: { 
+          id: user.id, 
+          email: user.email, 
+          username: user.username,
+          name: firstName || null,
+          lastname: lastName || null,
+          phone: user.phone ?? null,
+          country_code: user.country_code ?? null,
+        },
         seats_quota: Number(user.seats_quota ?? 0),
         seats_used: used,
         seats_remaining: Number(user.seats_quota ?? 0) - used,

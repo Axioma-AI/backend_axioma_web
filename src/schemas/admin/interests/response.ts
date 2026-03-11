@@ -24,3 +24,20 @@ export interface AdminInterestDeletedResponse {
 export interface AdminGroupDeletedResponse {
   deleted_group_id: number;
 }
+
+export interface AdminUsersSummaryResponse {
+  user: {
+    id: number;
+    email: string;
+    username: string;
+    name: string | null;
+    lastname: string | null;
+    phone: string | null;
+    country_code: string | null;
+  };
+  seats_quota: number;
+  seats_used: number;
+  seats_remaining: number;
+  interests: { id: number; name: string }[];
+  groups: { id: number; name: string; interests: { id: number; name: string }[] }[];
+}

@@ -44,7 +44,6 @@ export async function listUsersRepo(params: ListUsersParams): Promise<ListUsersR
     const roleFilter = params.role_name.toLowerCase();
     orFilters.push(
       { roles: { name: roleFilter as any } },
-      { role: roleFilter as any }
     );
   }
   if (orFilters.length > 0) {

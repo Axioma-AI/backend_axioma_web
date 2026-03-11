@@ -306,8 +306,8 @@ const swaggerDefinition: OAS3Definition = {
           success: true,
           data: {
             users: [
-              { id: 1, name: 'Jane', lastname: 'Admin Smith', username: 'janeadmin', email: 'admin@example.com', phone: '65656565', role: { id: 5, name: 'admin' }, seats_quota: 10 },
-              { id: 2, name: 'John', lastname: 'Doe', username: 'johndoe2', email: 'john2@example.com', phone: '5551234567', role: { id: 4, name: 'member' }, seats_quota: 5 },
+              { id: 1, username: 'janeadmin', email: 'admin@example.com', role: { id: 5, name: 'admin' }, seats_quota: 10 },
+              { id: 2, username: 'johndoe2', email: 'john2@example.com', role: { id: 4, name: 'member' }, seats_quota: 5 },
             ],
             page: 1,
             size: 20,
@@ -337,14 +337,11 @@ const swaggerDefinition: OAS3Definition = {
       },
       AdminListUser: {
         type: 'object',
-        required: ['id', 'name', 'lastname', 'username', 'email', 'role', 'seats_quota'],
+        required: ['id', 'username', 'email', 'role', 'seats_quota'],
         properties: {
           id: { type: 'integer' },
-          name: { type: 'string' },
-          lastname: { type: 'string' },
           username: { type: 'string' },
           email: { type: 'string', format: 'email' },
-          phone: { type: 'string', nullable: true, description: 'Optional phone number (6-15 digits)' },
           role: {
             type: 'object',
             properties: {
@@ -685,6 +682,10 @@ const swaggerDefinition: OAS3Definition = {
           id: { type: 'integer' },
           email: { type: 'string', format: 'email' },
           username: { type: 'string' },
+          name: { type: 'string', nullable: true, description: 'Nombre' },
+          lastname: { type: 'string', nullable: true, description: 'Apellidos (paterno y materno concatenados)' },
+          phone: { type: 'string', nullable: true, description: 'Teléfono (6-15 dígitos)' },
+          country_code: { type: 'string', nullable: true, description: 'Código de país (ej. MX, US, PE)' },
         },
       },
       InterestsSummaryResponse: {
