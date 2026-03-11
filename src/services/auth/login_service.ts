@@ -117,7 +117,7 @@ export async function loginService(rawBody: any, deviceInfo?: DeviceInfo): Promi
 
   return {
     user_id: user.id,
-    role_id: user.role_id ?? null,
+    role_name: (user.role_name as any) ?? null,
     access_token: accessToken,
     refresh_token: refreshToken,
     requires_two_factor: requiresTwoFactor || undefined,

@@ -11,7 +11,7 @@ export interface TwoFactorVerifyResponse {
   success: boolean;
   message: string;
   user_id?: number;
-  role_id?: number | null;
+  role_name?: string | null;
   recovery_codes?: string[];
   access_token?: string;
 }

@@ -97,7 +97,7 @@ const upload = multer();
  *                   success: true
  *                   data:
  *                     user_id: 1
- *                     role_id: 2
+ *                     role_name: "member"
  *                     access_token: "<JWT>"
  *                   message: "Login successful"
  *               two_step:
@@ -106,7 +106,7 @@ const upload = multer();
  *                   success: true
  *                   data:
  *                     user_id: 1
- *                     role_id: 2
+ *                     role_name: "member"
  *                     access_token: "<JWT with two_factor_pending>"
  *                     requires_two_factor: true
  *                   message: "Login successful"
@@ -116,7 +116,7 @@ const upload = multer();
  *                   success: true
  *                   data:
  *                     user_id: 1
- *                     role_id: 2
+ *                     role_name: "member"
  *                     access_token: "<JWT>"
  *                     requires_password_change: true
  *                   message: "Login successful"
@@ -156,7 +156,7 @@ loginRouter.post('/login', upload.none(), async (req: Request, res: Response) =>
     logger.info('[Auth] Login attempt', { email: req.body.email, username: req.body.username, hasTwoFactorToken: !!req.body.two_factor_token });
     const deviceInfo = getDeviceInfo(req);
     const result = await loginService(req.body, deviceInfo);
-    logger.info('[Auth] Login successful', { userId: result.user_id, roleId: result.role_id, requiresTwoFactor: result.requires_two_factor });
+    logger.info('[Auth] Login successful', { userId: result.user_id, roleName: (result as any).role_name, requiresTwoFactor: result.requires_two_factor });
 
     if (result.refresh_token) {
       res.cookie('refreshToken', result.refresh_token, {

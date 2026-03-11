@@ -66,17 +66,15 @@ export async function forgotPasswordService(rawBody: any): Promise<{ success: bo
     }
   }
 
-  if (input.last_name_paternal && profile.lastname) {
-    const profileLast = normalizeString(profile.lastname.split(' ')[0] ?? profile.lastname);
+  if (input.last_name_paternal && profile.paternal_lastname) {
+    const profileLast = normalizeString(profile.paternal_lastname);
     if (normalizeString(input.last_name_paternal) === profileLast) {
       matches++;
     }
   }
 
-  if (input.last_name_maternal && profile.lastname) {
-    const parts = profile.lastname.split(' ');
-    const maternal = parts.length > 1 ? parts.slice(1).join(' ') : '';
-    if (normalizeString(input.last_name_maternal) === normalizeString(maternal)) {
+  if (input.last_name_maternal && profile.maternal_lastname) {
+    if (normalizeString(input.last_name_maternal) === normalizeString(profile.maternal_lastname)) {
       matches++;
     }
   }

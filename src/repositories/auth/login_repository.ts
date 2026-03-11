@@ -11,7 +11,7 @@ export type { UserRecord };
 export async function getUserByEmail(email: string): Promise<UserRecord | null> {
   const entity: any = await prisma.users.findUnique({ 
     where: { email }, 
-    include: { }
+    include: { roles: true } as any
   });
   const user = entity ? toUserRecord(entity as any) : null;
   logger.debug(`login_repository: getUserByEmail(${email}) -> ${user ? 'found' : 'null'}`);
@@ -21,7 +21,7 @@ export async function getUserByEmail(email: string): Promise<UserRecord | null> 
 export async function getUserByUsername(username: string): Promise<UserRecord | null> {
   const entity: any = await prisma.users.findUnique({ 
     where: { username }, 
-    include: { }
+    include: { roles: true } as any
   });
   const user = entity ? toUserRecord(entity as any) : null;
   logger.debug(`login_repository: getUserByUsername(${username}) -> ${user ? 'found' : 'null'}`);

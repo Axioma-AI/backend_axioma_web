@@ -1,12 +1,12 @@
 export interface PublicUser {
   id: number;
   name: string;
-  lastname: string;
+  paternal_lastname: string | null;
+  maternal_lastname: string | null;
   username: string;
   email: string;
   phone: string | null;
   role: {
-    id: number | null;
     name: string | null;
   };
 }

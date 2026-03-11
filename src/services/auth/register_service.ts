@@ -25,12 +25,12 @@ function toPublicUser(u: UserRecord): PublicUser {
   return {
     id: u.id,
     name: u.name,
-    lastname: u.lastname,
+    paternal_lastname: u.paternal_lastname ?? null,
+    maternal_lastname: u.maternal_lastname ?? null,
     username: u.username,
     email: u.email,
     phone: u.phone,
     role: {
-      id: u.role_id,
       name: u.role_name,
     },
   };

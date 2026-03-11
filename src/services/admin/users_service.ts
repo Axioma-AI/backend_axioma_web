@@ -11,13 +11,13 @@ export async function listUsersService(params: ListUsersParams): Promise<AdminUs
   const users: AdminUsersListItem[] = items.map((u) => ({
     id: u.id,
     name: u.name,
-    lastname: u.lastname,
+    paternal_lastname: u.paternal_lastname ?? null,
+    maternal_lastname: u.maternal_lastname ?? null,
     username: u.username,
     email: u.email,
     phone: u.phone,
     country_code: u.country_code,
     role: {
-      id: u.role_id,
       name: (u.role_name as 'admin' | 'member' | null),
     },
     seats_quota: Number(u.seats_quota ?? 0),

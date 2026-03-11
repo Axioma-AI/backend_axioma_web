@@ -59,7 +59,7 @@ const upload = multer();
  *               success: true
  *               data:
  *                 user_id: 7
- *                 role_id: 4
+ *                 role_name: "member"
  *                 access_token: "<JWT>"
  *               message: "Two-factor login successful"
  *       400:
@@ -162,7 +162,7 @@ twoFactorLoginRouter.post('/two-factor/login', requireBearerAuthAllowPending, up
  *               success: true
  *               data:
  *                 user_id: 7
- *                 role_id: 4
+ *                 role_name: "member"
  *                 access_token: "<JWT>"
  *               message: "Two-factor recovery login successful"
  *       400:

@@ -48,9 +48,8 @@ adminUsersSummaryRouter.get('/users/summary', requireAdmin, async (req: Request,
     const unassignedInterests = allInterests.filter(i => !assignedIds.has(i.id));
 
     const firstName = user.first_name ?? '';
-    const lastName = user.last_name_paternal
-      ? user.last_name_paternal + (user.last_name_maternal ? ' ' + user.last_name_maternal : '')
-      : '';
+    const paternal = user.last_name_paternal ?? null;
+    const maternal = user.last_name_maternal ?? null;
 
     buildResponse(
       res,
@@ -61,7 +60,8 @@ adminUsersSummaryRouter.get('/users/summary', requireAdmin, async (req: Request,
           email: user.email, 
           username: user.username,
           name: firstName || null,
-          lastname: lastName || null,
+          paternal_lastname: paternal,
+          maternal_lastname: maternal,
           phone: user.phone ?? null,
           country_code: user.country_code ?? null,
         },

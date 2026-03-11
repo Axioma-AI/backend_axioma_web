@@ -38,7 +38,7 @@ export const refreshTokenRouter = Router();
  *               success: true
  *               data:
  *                 user_id: 1
- *                 role_id: 2
+ *                 role_name: "member"
  *                 access_token: "<JWT>"
  *               message: "Token refreshed successfully"
  *       401:

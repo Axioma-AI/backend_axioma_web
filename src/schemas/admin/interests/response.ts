@@ -31,7 +31,8 @@ export interface AdminUsersSummaryResponse {
     email: string;
     username: string;
     name: string | null;
-    lastname: string | null;
+    paternal_lastname: string | null;
+    maternal_lastname: string | null;
     phone: string | null;
     country_code: string | null;
   };

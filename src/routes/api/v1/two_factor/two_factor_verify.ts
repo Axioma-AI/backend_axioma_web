@@ -74,7 +74,7 @@ const upload = multer();
  *                     success: true
  *                     message: '2FA enabled successfully.'
  *                     user_id: 1
- *                     role_id: 2
+ *                     role_name: "member"
  *                     recovery_codes: ['ABCD-EFGH-IJKL', 'MNOP-QRST-UVWX']
  *                     access_token: '<JWT>'
  *                   message: 'Two-factor verification processed'

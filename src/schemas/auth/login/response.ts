@@ -1,6 +1,8 @@
+import type { RoleName } from '../../roles';
+
 export interface LoginResponse {
   user_id: number;
-  role_id: number | null;
+  role_name: RoleName | null;
   access_token: string;
   refresh_token?: string;
   requires_two_factor?: boolean;

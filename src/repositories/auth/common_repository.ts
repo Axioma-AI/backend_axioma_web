@@ -9,6 +9,8 @@ export interface UserRecord {
   id: number;
   name: string;
   lastname: string;
+  paternal_lastname?: string | null;
+  maternal_lastname?: string | null;
   username: string;
   email: string;
   phone: string | null;
@@ -41,11 +43,15 @@ export function toUserRecord(entity: any): UserRecord {
     : entity.lastname ?? '';
   const phone = entity.phone ?? null;
   const countryCode = entity.country_code ?? null;
+  const paternal = entity.last_name_paternal ?? null;
+  const maternal = entity.last_name_maternal ?? null;
 
   return {
     id: entity.id,
     name: firstName,
     lastname: lastName,
+    paternal_lastname: paternal,
+    maternal_lastname: maternal,
     username: entity.username,
     email: entity.email,
     phone: phone,

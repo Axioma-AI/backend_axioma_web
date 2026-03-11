@@ -57,7 +57,7 @@ export async function refreshAccessTokenService(userId: number, deviceInfo?: Dev
 
   return {
     user_id: user.id,
-    role_id: user.role_id ?? null,
+    role_name: (user.role_name as any) ?? null,
     access_token: accessToken,
     refresh_token: newRefreshToken,
   };

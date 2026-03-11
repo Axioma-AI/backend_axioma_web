@@ -182,7 +182,7 @@ export async function verifyAndEnableTwoFactorService(
     success: true,
     message: '2FA habilitado correctamente.',
     user_id: user.id,
-    role_id: user.role_id ?? null,
+    role_name: user.role_name ?? null,
     recovery_codes: codesPlain,
     access_token: fullAccessToken,
   };
@@ -227,7 +227,7 @@ export async function verifyTwoFactorTokenService(
 export async function completeTwoFactorLoginService(
   userId: number,
   twoFactorToken: string
-): Promise<{ user_id: number; role_id: number | null; access_token: string }> {
+): Promise<{ user_id: number; role_name: string | null; access_token: string }> {
   logger.info('[TwoFactorService] Complete login with 2FA start', { userId });
   const user = await getUserById(userId);
   if (!user) {
@@ -255,7 +255,7 @@ export async function completeTwoFactorLoginService(
 
   return {
     user_id: user.id,
-    role_id: user.role_id ?? null,
+    role_name: user.role_name ?? null,
     access_token: accessToken,
   };
 }
@@ -263,7 +263,7 @@ export async function completeTwoFactorLoginService(
 export async function completeTwoFactorLoginWithRecoveryCodeService(
   userId: number,
   recoveryCode: string
-): Promise<{ user_id: number; role_id: number | null; access_token: string }> {
+): Promise<{ user_id: number; role_name: string | null; access_token: string }> {
   logger.info('[TwoFactorService] Complete login with recovery code start', { userId });
   const user = await getUserById(userId);
   if (!user) {
@@ -309,7 +309,7 @@ export async function completeTwoFactorLoginWithRecoveryCodeService(
 
   return {
     user_id: user.id,
-    role_id: user.role_id ?? null,
+    role_name: user.role_name ?? null,
     access_token: accessToken,
   };
 }

@@ -41,7 +41,8 @@ export const getProfileRouter = Router();
  *                     user:
  *                       id: 7
  *                       name: John
- *                       lastname: Doe
+ *                       paternal_lastname: Doe
+ *                       maternal_lastname: null
  *                       username: johndoe2
  *                       email: john2@example.com
  *                       phone: "5551234567"

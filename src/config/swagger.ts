@@ -128,7 +128,7 @@ const swaggerDefinition: OAS3Definition = {
           success: { type: 'boolean', description: 'Indicates whether verification was successful' },
           message: { type: 'string', description: 'Descriptive message of the result' },
           user_id: { type: 'integer', nullable: true, description: 'Authenticated user ID' },
-          role_id: { type: 'integer', nullable: true, description: 'User role ID' },
+          role_name: { type: 'string', nullable: true, enum: Object.values(RoleName), description: 'User role name' },
           recovery_codes: {
             type: 'array',
             items: { type: 'string' },
@@ -143,7 +143,7 @@ const swaggerDefinition: OAS3Definition = {
               success: true,
               message: '2FA enabled successfully.',
               user_id: 1,
-              role_id: 2,
+              role_name: 'member',
               recovery_codes: ['ABCD-EFGH-IJKL', 'MNOP-QRST-UVWX'],
               access_token: '<JWT>',
             },
@@ -306,8 +306,8 @@ const swaggerDefinition: OAS3Definition = {
           success: true,
           data: {
             users: [
-              { id: 1, name: 'Jane', lastname: 'Admin Smith', username: 'janeadmin', email: 'admin@example.com', phone: '65656565', country_code: 'MX', role: { id: 5, name: 'admin' }, seats_quota: 10 },
-              { id: 2, name: 'John', lastname: 'Doe', username: 'johndoe2', email: 'john2@example.com', phone: '5551234567', country_code: 'US', role: { id: 4, name: 'member' }, seats_quota: 5 },
+              { id: 1, name: 'Jane', paternal_lastname: 'Admin', maternal_lastname: 'Smith', username: 'janeadmin', email: 'admin@example.com', phone: '65656565', country_code: 'MX', role: { name: 'admin' }, seats_quota: 10 },
+              { id: 2, name: 'John', paternal_lastname: 'Doe', maternal_lastname: null, username: 'johndoe2', email: 'john2@example.com', phone: '5551234567', country_code: 'US', role: { name: 'member' }, seats_quota: 5 },
             ],
             page: 1,
             size: 20,
@@ -318,18 +318,18 @@ const swaggerDefinition: OAS3Definition = {
       },
       PublicUser: {
         type: 'object',
-        required: ['id', 'name', 'lastname', 'username', 'email', 'role'],
+        required: ['id', 'name', 'paternal_lastname', 'maternal_lastname', 'username', 'email', 'role'],
         properties: {
           id: { type: 'integer' },
           name: { type: 'string' },
-          lastname: { type: 'string' },
+          paternal_lastname: { type: 'string', nullable: true },
+          maternal_lastname: { type: 'string', nullable: true },
           username: { type: 'string' },
           email: { type: 'string', format: 'email' },
           phone: { type: 'string', nullable: true, description: 'Optional phone number (6-15 digits)' },
           role: {
             type: 'object',
             properties: {
-              id: { type: 'integer', nullable: true },
               name: { type: 'string', nullable: true, enum: Object.values(RoleName) },
             },
           },
@@ -337,11 +337,12 @@ const swaggerDefinition: OAS3Definition = {
       },
       AdminListUser: {
         type: 'object',
-        required: ['id', 'name', 'lastname', 'username', 'email', 'role', 'seats_quota'],
+        required: ['id', 'name', 'paternal_lastname', 'maternal_lastname', 'username', 'email', 'role', 'seats_quota'],
         properties: {
           id: { type: 'integer' },
           name: { type: 'string' },
-          lastname: { type: 'string' },
+          paternal_lastname: { type: 'string', nullable: true },
+          maternal_lastname: { type: 'string', nullable: true },
           username: { type: 'string' },
           email: { type: 'string', format: 'email' },
           phone: { type: 'string', nullable: true, description: 'Optional phone number (6-15 digits)' },
@@ -349,7 +350,6 @@ const swaggerDefinition: OAS3Definition = {
           role: {
             type: 'object',
             properties: {
-              id: { type: 'integer', nullable: true },
               name: { type: 'string', nullable: true, enum: Object.values(RoleName) },
             },
           },
@@ -358,10 +358,10 @@ const swaggerDefinition: OAS3Definition = {
       },
       LoginResponse: {
         type: 'object',
-        required: ['user_id', 'role_id', 'access_token'],
+        required: ['user_id', 'role_name', 'access_token'],
         properties: {
           user_id: { type: 'integer', description: 'Authenticated user ID' },
-          role_id: { type: 'integer', nullable: true, description: 'Role ID or null if not applicable' },
+          role_name: { type: 'string', nullable: true, enum: Object.values(RoleName), description: 'Role name or null if not applicable' },
           access_token: {
             type: 'string',
             description: 'Access JWT. Use in Authorization: Bearer <token>. Includes jti and exp.',
@@ -395,11 +395,12 @@ const swaggerDefinition: OAS3Definition = {
           user: {
             id: 7,
             name: 'John',
-            lastname: 'Doe',
+            paternal_lastname: 'Doe',
+            maternal_lastname: null,
             username: 'johndoe2',
             email: 'john2@example.com',
             phone: '65656565',
-            role: { id: 4, name: 'member' },
+            role: { name: 'member' },
           },
         },
       },
@@ -518,11 +519,12 @@ const swaggerDefinition: OAS3Definition = {
       },
       Profile: {
         type: 'object',
-        required: ['id', 'name', 'lastname', 'username', 'email', 'role'],
+        required: ['id', 'name', 'paternal_lastname', 'maternal_lastname', 'username', 'email', 'role'],
         properties: {
           id: { type: 'integer' },
           name: { type: 'string' },
-          lastname: { type: 'string' },
+          paternal_lastname: { type: 'string', nullable: true },
+          maternal_lastname: { type: 'string', nullable: true },
           username: { type: 'string' },
           email: { type: 'string', format: 'email' },
           phone: { type: 'string', nullable: true },
@@ -531,7 +533,6 @@ const swaggerDefinition: OAS3Definition = {
           role: {
             type: 'object',
             properties: {
-              id: { type: 'integer', nullable: true },
               name: { type: 'string', nullable: true, enum: Object.values(RoleName) },
             },
           },
@@ -687,7 +688,8 @@ const swaggerDefinition: OAS3Definition = {
           email: { type: 'string', format: 'email' },
           username: { type: 'string' },
           name: { type: 'string', nullable: true, description: 'Nombre' },
-          lastname: { type: 'string', nullable: true, description: 'Apellidos (paterno y materno concatenados)' },
+          paternal_lastname: { type: 'string', nullable: true, description: 'Apellido paterno' },
+          maternal_lastname: { type: 'string', nullable: true, description: 'Apellido materno' },
           phone: { type: 'string', nullable: true, description: 'Teléfono (6-15 dígitos)' },
           country_code: { type: 'string', nullable: true, description: 'Código de país (ej. MX, US, PE)' },
         },

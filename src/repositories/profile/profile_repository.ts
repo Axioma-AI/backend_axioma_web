@@ -72,17 +72,19 @@ export async function updateProfile(
 
 function toProfileUser(user: UserRecord, entity?: any): ProfileUserDTO {
   const country_code = entity?.country_code ?? null;
+  const paternal_lastname = entity?.last_name_paternal ?? user.paternal_lastname ?? null;
+  const maternal_lastname = entity?.last_name_maternal ?? user.maternal_lastname ?? null;
 
   return {
     id: user.id,
     name: user.name,
-    lastname: user.lastname,
+    paternal_lastname,
+    maternal_lastname,
     username: user.username,
     email: user.email,
     phone: user.phone,
     country_code,
     role: {
-      id: user.role_id,
       name: user.role_name,
     },
   };
