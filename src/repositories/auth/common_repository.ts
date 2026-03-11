@@ -12,6 +12,7 @@ export interface UserRecord {
   username: string;
   email: string;
   phone: string | null;
+  country_code?: string | null;
   password_hash: string;
   role_id: number | null;
   role_name: string | null;
@@ -39,6 +40,7 @@ export function toUserRecord(entity: any): UserRecord {
     ? (entity.last_name_paternal + (entity.last_name_maternal ? ' ' + entity.last_name_maternal : ''))
     : entity.lastname ?? '';
   const phone = entity.phone ?? null;
+  const countryCode = entity.country_code ?? null;
 
   return {
     id: entity.id,
@@ -47,6 +49,7 @@ export function toUserRecord(entity: any): UserRecord {
     username: entity.username,
     email: entity.email,
     phone: phone,
+    country_code: countryCode,
     password_hash: entity.password ?? entity.password_hash ?? entity.passwordHash,
     role_id: entity.roles ? entity.roles.id : (entity.role_id ?? null),
     role_name: entity.roles ? entity.roles.name ?? null : null,
