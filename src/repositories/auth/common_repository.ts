@@ -49,7 +49,7 @@ export function toUserRecord(entity: any): UserRecord {
     phone: phone,
     password_hash: entity.password ?? entity.password_hash ?? entity.passwordHash,
     role_id: entity.roles ? entity.roles.id : (entity.role_id ?? null),
-    role_name: entity.roles ? entity.roles.name ?? null : (entity.role ?? null),
+    role_name: entity.roles ? entity.roles.name ?? null : null,
     seats_quota: Number(entity.seats_quota ?? 0),
     change_password: entity.change_password ?? entity.changePassword ?? false,
     avatar_type: entity.avatar_type ?? entity.avatarType ?? null,
