@@ -1,0 +1,46 @@
+import cors from "cors";
+import type { Express } from "express";
+import { setupLogger } from "../utils/logger";
+import { getAppSettings, getCorsSettings } from "./settings";
+
+const _APP_SETTINGS = getAppSettings();
+const _CORS_SETTINGS = getCorsSettings();
+const logger = setupLogger(_APP_SETTINGS.log_level);
+
+const allowedOrigins = [
+  "http://localhost:52001",
+  "http://localhost:8000",
+  "http://localhost:5173",
+  "https://optimus.axioma.news",
+  "https://api.optimus.axioma.news"
+].map(o => o.replace(/\/$/, ""));
+
+export function addCors(app: Express): void {
+  const originCheck: cors.CorsOptions["origin"] = (origin, callback) => {
+    if (!origin) return callback(null, true);
+
+    const normalized = origin.replace(/\/$/, "");
+    if (allowedOrigins.includes(normalized)) return callback(null, true);
+
+    callback(new Error(`CORS blocked: origin ${normalized} not allowed`));
+  };
+
+  const allowAll = (_CORS_SETTINGS.allowed_origins || "all").toLowerCase() === "all";
+
+  const corsOptions: cors.CorsOptions = {
+    origin: allowAll ? true : originCheck,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allowedHeaders: ["Authorization", "Content-Type"],
+    optionsSuccessStatus: 204,
+  };
+
+  app.use(cors(corsOptions));
+  app.options(/.*/, cors(corsOptions));
+
+  if (allowAll) {
+    logger.info("CORS mode 'all': any Origin allowed");
+  } else {
+    logger.info(`CORS mode 'limited': allowed -> ${allowedOrigins.join(", ")}`);
+  }
+}

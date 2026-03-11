@@ -1,0 +1,176 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+
+model users {
+  id               Int       @id @default(autoincrement())
+  email            String    @unique(map: "uq_users_email") @db.VarChar(255)
+  username         String    @unique(map: "uq_users_username") @db.VarChar(100)
+  password         String    @db.VarChar(255)
+  change_password  Boolean   @default(false)
+  twoFA            Boolean   @default(false)
+  avatar_type      users_avatar_type?
+  avatar_data      Bytes?
+  first_name       String?   @db.VarChar(255)
+  last_name_paternal String? @db.VarChar(255)
+  last_name_maternal String? @db.VarChar(255)
+  phone            String?   @db.VarChar(50)
+  country_code     String?   @db.VarChar(10)
+  created_at       DateTime  @default(now()) @db.DateTime(6)
+  updated_at       DateTime  @default(now()) @db.DateTime(6)
+  avatar_path      String?   @db.VarChar(1024)
+  role             user_role @default(member)
+  role_id          Int?
+  roles            roles?    @relation(fields: [role_id], references: [id])
+  created_by_id    Int?
+  created_by       users?    @relation("UserCreator", fields: [created_by_id], references: [id])
+  created_users    users[]   @relation("UserCreator")
+  password_history user_password_history[]
+  recovery_codes   user_recovery_codes[]
+  user_sessions    user_sessions[]
+  two_factor       UserTwoFactor? @relation("UserTwoFactorOnUser")
+    seats_quota      Int       @default(0)
+  interests        interests[]
+  interest_groups  interest_groups[]
+}
+
+
+model user_sessions {
+  id               Int       @id @default(autoincrement())
+  user_id          Int?
+  jti              String    @unique(map: "IDX_bd37bc320d2dc4a4cbbcd2993a") @db.VarChar(64)
+  created_at       DateTime  @default(now()) @db.DateTime(6)
+  updated_at       DateTime  @default(now()) @db.DateTime(6)
+  expires_at       DateTime  @db.DateTime(0)
+  revoked_at       DateTime? @db.DateTime(0)
+  ip_address       String?   @db.VarChar(45)
+  user_agent       String?   @db.Text
+  device_type      String?   @db.VarChar(50)
+  device_brand     String?   @db.VarChar(100)
+  device_model     String?   @db.VarChar(100)
+  os_name          String?   @db.VarChar(100)
+  os_version       String?   @db.VarChar(50)
+  client_name      String?   @db.VarChar(100)
+  client_version   String?   @db.VarChar(50)
+  location_country String?   @db.VarChar(100)
+  location_region  String?   @db.VarChar(100)
+  location_city    String?   @db.VarChar(100)
+  users            users?    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_085d540d9f418cfbdc7bd55bb19")
+
+  @@index([user_id], map: "FK_085d540d9f418cfbdc7bd55bb19")
+}
+
+model UserTwoFactor {
+  id           Int            @id @default(autoincrement())
+  user_id      Int            @unique
+  secret       String         @db.VarChar(255)
+  algorithm    totp_algorithm
+  digits       Int
+  period       Int
+  issuer       String?        @db.VarChar(128)
+  label        String?        @db.VarChar(128)
+  is_enabled   Boolean        @default(false)
+  confirmed_at DateTime?      @db.DateTime(0)
+  created_at   DateTime       @default(now()) @db.DateTime(6)
+  updated_at   DateTime       @default(now()) @db.DateTime(6)
+  users        users          @relation("UserTwoFactorOnUser", fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("user_two_factor")
+}
+
+model user_recovery_codes {
+  id         Int       @id @default(autoincrement())
+  user_id    Int
+  code_hash  String    @db.VarChar(255)
+  used_at    DateTime?
+  created_at DateTime  @default(now()) @db.DateTime(6)
+  updated_at DateTime  @default(now()) @db.DateTime(6)
+  users      users     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([user_id])
+}
+
+model user_password_history {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  password   String   @db.VarChar(255)
+  created_at DateTime @default(now()) @db.DateTime(6)
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id])
+}
+
+model roles {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique @db.VarChar(64)
+  description String    @db.VarChar(255)
+  created_at  DateTime  @default(now()) @db.DateTime(6)
+  updated_at  DateTime  @default(now()) @db.DateTime(6)
+  users       users[]
+}
+
+enum users_avatar_type {
+  jpg
+  jpeg
+  png
+  heic
+  heif
+}
+
+enum totp_algorithm {
+  sha1
+  sha256
+  sha512
+}
+
+enum user_role {
+  admin
+  member
+}
+
+// Interests owned by a user. Each interest consumes one seat from the user's quota.
+model interests {
+  id          Int      @id @default(autoincrement())
+  user_id     Int
+  name        String   @db.VarChar(255)
+  created_at  DateTime @default(now()) @db.DateTime(6)
+  updated_at  DateTime @default(now()) @db.DateTime(6)
+  users       users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  group_items interest_group_items[]
+
+  @@index([user_id])
+  @@unique([user_id, name], map: "uq_interests_user_name")
+}
+
+// Interest groups owned by a user. Must contain 2 or more interests (enforced at application layer).
+model interest_groups {
+  id          Int      @id @default(autoincrement())
+  user_id     Int
+  name        String   @db.VarChar(255)
+  created_at  DateTime @default(now()) @db.DateTime(6)
+  updated_at  DateTime @default(now()) @db.DateTime(6)
+  users       users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  items       interest_group_items[]
+
+  @@index([user_id])
+  @@unique([user_id, name], map: "uq_interest_groups_user_name")
+}
+
+// Pivot table linking interests to groups.
+model interest_group_items {
+  id           Int             @id @default(autoincrement())
+  group_id     Int
+  interest_id  Int
+  created_at   DateTime        @default(now()) @db.DateTime(6)
+  group        interest_groups @relation(fields: [group_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  interest     interests       @relation(fields: [interest_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([group_id, interest_id], map: "uq_group_interest")
+  @@index([group_id])
+  @@index([interest_id])
+}

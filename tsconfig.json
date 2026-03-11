@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "CommonJS",
+    "outDir": "dist",
+    "rootDir": "src",
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": [
+    "src/services/committees/**",
+    "src/services/company/**",
+    "src/services/company_phones/**",
+    "src/services/department/**",
+    "src/services/employee/**",
+    "src/services/organization/**",
+    "src/repositories/committees/**",
+    "src/repositories/company/**",
+    "src/repositories/company_phones/**",
+    "src/repositories/department/**",
+    "src/repositories/employee/**",
+    "src/repositories/organization/**",
+    "src/routes/api/v1/organization/**",
+    "src/routes/api/v1/company/**",
+    "src/routes/api/v1/company_phones/**",
+    "src/routes/api/v1/committees/**",
+    "src/routes/api/v1/department/**",
+    "src/routes/api/v1/employee/**",
+    "src/routes/api/v1/city/**",
+    "src/routes/api/v1/reminder_type/**"
+  ]
+}

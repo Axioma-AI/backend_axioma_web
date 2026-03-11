@@ -1,0 +1,23 @@
+services:
+  api:
+    build: .
+    container_name: backend-optimus-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - PORT=${PORT:-8000}
+      - PRISMA_SYNC_MODE=${PRISMA_SYNC_MODE:-none}
+      - PRISMA_RUN_SEED=${PRISMA_RUN_SEED:-false}
+      - PRISMA_SYNC_CONTINUE_ON_ERROR=${PRISMA_SYNC_CONTINUE_ON_ERROR:-true}
+    ports:
+      - "${PORT:-8000}:${PORT:-8000}"
+    volumes:
+      - ./logs:/app/logs
+    command: ["sh", "-lc", "node scripts/prisma-sync.js && node dist/index.js"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -H 'Origin: https://optimus.axioma.news' http://localhost:${PORT:-8000}/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
