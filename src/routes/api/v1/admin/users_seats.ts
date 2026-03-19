@@ -103,11 +103,19 @@ adminUsersSeatsRouter.post('/users/seats', requireAdmin, async (req: Request, re
     });
     const createdUsersSum = Number(sumCreatedUsers._sum?.seats_quota ?? 0);
     const adminUser = await prisma.users.findUnique({ where: { id: adminId } });
+    const adminUsedCount = await prisma.interests.count({ where: { user_id: adminId } });
     const currentTargetSeats = Number(targetUser.seats_quota ?? 0);
     const adminSeats = targetUser.id === adminId ? 0 : Number(adminUser?.seats_quota ?? 0);
     const tentativeTotal = createdUsersSum + adminSeats + seats;
-    if (tentativeTotal > 20) {
-      throw new ValidationError(`La suma de seats asignados (${tentativeTotal}) excede el límite de 20.`, HTTP.BAD_REQUEST);
+    let newAdminSeats = adminSeats;
+    if (tentativeTotal > 20 && targetUser.id !== adminId) {
+      const delta = tentativeTotal - 20;
+      const candidateAdminSeats = Math.max(adminSeats - delta, adminUsedCount);
+      const minimalTotal = createdUsersSum + candidateAdminSeats + seats;
+      if (minimalTotal > 20) {
+        throw new ValidationError(`La suma de seats asignados (${tentativeTotal}) excede el límite de 20.`, HTTP.BAD_REQUEST);
+      }
+      newAdminSeats = candidateAdminSeats;
     }
 
     const freedSeats = targetUser.id !== adminId ? Math.max(currentTargetSeats - seats, 0) : 0;
@@ -117,9 +125,12 @@ adminUsersSeatsRouter.post('/users/seats', requireAdmin, async (req: Request, re
         where: { id: targetUser.id },
         data: { seats_quota: seats },
       });
-      let finalAdminSeats = adminSeats;
-      if (freedSeats > 0) {
-        finalAdminSeats = adminSeats + freedSeats;
+      let finalAdminSeats = newAdminSeats;
+      const hasFreedSeats = freedSeats > 0;
+      if (hasFreedSeats) {
+        finalAdminSeats = newAdminSeats + freedSeats;
+      }
+      if (targetUser.id !== adminId) {
         await tx.users.update({
           where: { id: adminId },
           data: { seats_quota: finalAdminSeats },
@@ -129,7 +140,7 @@ adminUsersSeatsRouter.post('/users/seats', requireAdmin, async (req: Request, re
       return { finalTotal, finalAdminSeats };
     });
 
-    logger.info(`[Admin] Seats updated for user id=${targetUser.id}: seats_quota=${seats}${freedSeats > 0 ? `; admin auto-recargado +${freedSeats}` : ''}`);
+    logger.info(`[Admin] Seats updated for user id=${targetUser.id}: seats_quota=${seats}${freedSeats > 0 ? `; admin auto-recargado +${freedSeats}` : ''}${newAdminSeats !== adminSeats ? `; admin ajustado -${adminSeats - newAdminSeats}` : ''}`);
     buildResponse(res, HTTP.OK, { user_id: targetUser.id, seats_quota: seats, admin_pool_used: result.finalTotal, admin_pool_remaining: 20 - result.finalTotal }, 'Seats asignados');
   } catch (err: any) {
     next(err);
