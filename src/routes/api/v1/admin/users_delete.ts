@@ -83,7 +83,7 @@ adminUsersDeleteRouter.delete('/users', requireAdmin, async (req: Request, res: 
       throw new ValidationError('Provide exactly one identifier: id OR email OR username.', HTTP.BAD_REQUEST);
     }
 
-    let toDeleteId: number | null = null;
+    let toDelete: any = null;
 
     if (typeof idParam === 'string' && idParam.trim().length > 0) {
       const id = Number(idParam);
@@ -94,46 +94,64 @@ adminUsersDeleteRouter.delete('/users', requireAdmin, async (req: Request, res: 
       if (!byId) {
         throw new ValidationError('User not found.', HTTP.NOT_FOUND);
       }
-      toDeleteId = byId.id;
+      toDelete = byId;
     } else if (typeof emailParam === 'string' && emailParam.trim().length > 0) {
       const email = emailParam.trim().toLowerCase();
       const byEmail = await prisma.users.findUnique({ where: { email } });
       if (!byEmail) {
         throw new ValidationError('User not found.', HTTP.NOT_FOUND);
       }
-      toDeleteId = byEmail.id;
+      toDelete = byEmail;
     } else if (typeof usernameParam === 'string' && usernameParam.trim().length > 0) {
       const username = usernameParam.trim();
       const byUsername = await prisma.users.findUnique({ where: { username } });
       if (!byUsername) {
         throw new ValidationError('User not found.', HTTP.NOT_FOUND);
       }
-      toDeleteId = byUsername.id;
+      toDelete = byUsername;
     }
 
-    if (toDeleteId === null) {
+    if (!toDelete) {
       throw new ValidationError('User not found.', HTTP.NOT_FOUND);
     }
 
     const requesterId = Number((req as any).userId);
-    if (Number.isFinite(requesterId) && requesterId === toDeleteId) {
+    if (Number.isFinite(requesterId) && requesterId === toDelete.id) {
       throw new ValidationError('No puedes eliminar tu propia cuenta.', 403);
     }
 
-    const childCount = await prisma.users.count({ where: { created_by_id: toDeleteId } });
+    const childCount = await prisma.users.count({ where: { created_by_id: toDelete.id } });
     if (childCount > 0) {
       throw new ValidationError('No se puede eliminar: el usuario tiene usuarios creados asociados.', 409);
     }
 
+    const reclaimToAdmin = Number(toDelete.created_by_id) === requesterId;
+    const freedSeats = Number(toDelete.seats_quota ?? 0);
+    const adminUser = reclaimToAdmin ? await prisma.users.findUnique({ where: { id: requesterId } }) : null;
+    const adminUsedCount = reclaimToAdmin ? await prisma.interests.count({ where: { user_id: requesterId } }) : 0;
+    const sumOthers = reclaimToAdmin
+      ? await prisma.users.aggregate({ _sum: { seats_quota: true }, where: { created_by_id: requesterId, id: { not: toDelete.id } } })
+      : { _sum: { seats_quota: 0 } } as any;
+    const othersSum = Number(sumOthers._sum?.seats_quota ?? 0);
+    const adminSeats = Number(adminUser?.seats_quota ?? 0);
+    const targetAdminSeats = Math.min(adminSeats + freedSeats, Math.max(20 - othersSum, adminSeats));
+    const finalAdminSeats = Math.max(targetAdminSeats, adminUsedCount);
+
     await prisma.$transaction(async (tx) => {
-      await tx.user_sessions.deleteMany({ where: { user_id: toDeleteId } });
-      await tx.user_recovery_codes.deleteMany({ where: { user_id: toDeleteId } });
-      await tx.userTwoFactor.deleteMany({ where: { user_id: toDeleteId } });
-      await tx.users.delete({ where: { id: toDeleteId } });
+      await tx.user_sessions.deleteMany({ where: { user_id: toDelete.id } });
+      await tx.user_recovery_codes.deleteMany({ where: { user_id: toDelete.id } });
+      await tx.userTwoFactor.deleteMany({ where: { user_id: toDelete.id } });
+      await tx.users.delete({ where: { id: toDelete.id } });
+      if (reclaimToAdmin && freedSeats > 0) {
+        await tx.users.update({
+          where: { id: requesterId },
+          data: { seats_quota: finalAdminSeats },
+        });
+      }
     });
 
-    logger.info(`[Admin] Deleted user id=${toDeleteId}`);
-    buildResponse(res, HTTP.OK, { deleted_id: toDeleteId }, 'User deleted');
+    logger.info(`[Admin] Deleted user id=${toDelete.id}${reclaimToAdmin && freedSeats > 0 ? `; admin reclamo +${finalAdminSeats - adminSeats}` : ''}`);
+    buildResponse(res, HTTP.OK, { deleted_id: toDelete.id, reclaimed_to_admin: reclaimToAdmin ? (finalAdminSeats - adminSeats) : 0 }, 'User deleted');
   } catch (err: any) {
     const message = err?.message ?? 'Error deleting user';
     if (err instanceof ValidationError) {
