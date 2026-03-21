@@ -77,7 +77,6 @@ const upload = multer();
  *                       country_code: "52"
  *                       avatar_url: "/api/v1/profile/avatar"
  *                       role:
- *                         id: 4
  *                         name: "member"
  *                   message: "Profile updated successfully"
  *       '400':

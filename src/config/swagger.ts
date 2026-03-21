@@ -570,11 +570,31 @@ const swaggerDefinition: OAS3Definition = {
         },
         description: 'Allows partial profile updates. Use multipart/form-data to upload the avatar.',
       },
+      AdminUpdateUserRequest: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', minLength: 2, description: 'Optional; User first name (minimum 2 characters)' },
+          lastname: { type: 'string', minLength: 2, description: 'Optional; User paternal last name (minimum 2 characters)'},
+          username: { type: 'string', description: '3-20 characters; letters, numbers, . _ -' },
+          phone: { type: 'string', nullable: true, description: 'Optional; 6-15 digits, no spaces or symbols' },
+          country_code: { type: 'string', nullable: true, description: 'Optional; phone country code (e.g. 52)' },
+        },
+        description: 'Partial update of a user by admin. Avatar changes are not allowed.',
+      },
       UpdateProfileResponse: {
         type: 'object',
         required: ['user'],
         properties: {
           user: { $ref: '#/components/schemas/Profile' },
+        },
+      },
+      BaseResponseAdminUpdateUser: {
+        type: 'object',
+        required: ['success', 'data', 'message'],
+        properties: {
+          success: { type: 'boolean', example: true },
+          data: { $ref: '#/components/schemas/UpdateProfileResponse' },
+          message: { type: 'string', example: 'Usuario actualizado' },
         },
       },
       BaseResponseUpdateProfile: {
